@@ -5,13 +5,13 @@
 #### Overview
 Steve is a fairly simple Azure attack surface discovery and mapping tool with several functions. It's designed so most of its output can be piped into the next command, making things pretty easy to execute.
 
-**Mine**
+###### Mine
 `Mine` allows you to discover Azure resources through CNAME records of a given list of domains. You can pipe these in from your favourite subdomain hunting tool, and it will output a list of Azure resource domains it's found hits for.
 
-**Craft**
+###### Craft
 `Craft` can be fed a list of azure resource names and it will output either permutations of all the resource names, or a list of masks in hashcat format. It can be useful for finding other resources within a resource group, or going insane if you choose the hashcat mask option.
 
-**Forage**
+###### Forage
 `Forage` will search for Azure resources from a given list of resource names, checking for hits against a list of known Azure domains. It's "inspired" by [Microburst's Invoke-EnumerateAzureSubdomains](https://github.com/NetSPI/MicroBurst/blob/master/Misc/Invoke-EnumerateAzureSubDomains.ps1).
 
 You may get false positives from `forage`. I believe this has something to do with the default list of resolvers, but need to investigate further. For now, modify your config file and set your own trusted resolvers.
@@ -103,7 +103,7 @@ Example:
 # Windows
 PS> subfinder -d example.com | steve mine | ForEach-Object { $_.Split(".")[0]} | steve craft | steve forage
 
-# \*nix
+# *nix
 $ subfinder -d example.com | steve mine | cut -f1 -d"." | steve craft | steve forage
 ```
 
