@@ -62,9 +62,14 @@ Use "steve [command] --help" for more information about a command.
 ```
 Mine will read a list of domains from stdin and check each of them
 for CNAMEs pointing to known Azure domains, indicating an Azure resource.
+Optionally, provide -c to check for potential subdomain takeovers.
 
 Example:
+	# identify Azure resources from CNAMEs
 	$ subfinder -d microsoft.com | steve mine
+
+	# identify Azure resources with potential subdomain takeovers
+	$ subfinder -d microsoft.com | steve mine -c
 ```
 
 ###### Craft
