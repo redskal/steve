@@ -95,8 +95,9 @@ type Domain struct {
 }
 
 type Cname struct {
-	Type  string
-	Cname string
+	Type     string
+	Cname    string
+	Takeover bool
 }
 
 // CheckResourceExists checks for DNS records against a given resource name
@@ -127,7 +128,7 @@ func CheckResourceExists(resource, resolver string) ([]Resource, error) {
 
 // CheckAzureCnames checks a domain for CNAME DNS records that match
 // known Azure domains.
-func CheckAzureCnames(domain, resolver string) (Domain, error) {
+func CheckAzureCnames(domain, resolver string, checkTakeover bool) (Domain, error) {
 	ret := Domain{
 		Domain: domain,
 	}
@@ -148,6 +149,9 @@ func CheckAzureCnames(domain, resolver string) (Domain, error) {
 					Type:  rsrcType,
 					Cname: cname.Target[:len(cname.Target)-1], // the index loses the trailing '.'
 				}
+				if checkTakeover {
+					temp.Takeover, _ = CheckTakeover(domain, resolver)
+				}
 				ret.Cnames = append(ret.Cnames, temp)
 			}
 		}
@@ -156,6 +160,23 @@ func CheckAzureCnames(domain, resolver string) (Domain, error) {
 		return ret, fmt.Errorf("no CNAME records matched Azure hostnames")
 	}
 	return ret, nil
+}
+
+// CheckTakeover will check a domain for Rcodes equating to
+// NXDOMAIN. Use this when a CNAME relating to Azure has been
+// identified.
+func CheckTakeover(domain, resolver string) (bool, error) {
+	var msg dns.Msg
+	fqdn := dns.Fqdn(domain)
+	msg.SetQuestion(fqdn, dns.TypeA)
+	in, err := dns.Exchange(&msg, resolver)
+	if err != nil {
+		return false, err
+	}
+	if dns.RcodeToString[in.Rcode] == "NXDOMAIN" {
+		return true, nil
+	}
+	return false, nil
 }
 
 // checkAzureMatch matches the given domain to a set of regular

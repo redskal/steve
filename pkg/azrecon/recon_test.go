@@ -10,7 +10,7 @@ import (
 )
 
 func TestCheckAzureCnames(t *testing.T) {
-	domain, err := CheckAzureCnames("learn.microsoft.com", "1.1.1.1:53")
+	domain, err := CheckAzureCnames("learn.microsoft.com", "1.1.1.1:53", false)
 	if err != nil {
 		t.Fatal(err)
 	}

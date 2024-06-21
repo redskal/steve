@@ -34,6 +34,10 @@ Example:
 		if err != nil {
 			logger.Fatal(err)
 		}
+		checkTakeover, err := cmd.Flags().GetBool("check-takeover")
+		if err != nil {
+			logger.Fatal(err)
+		}
 
 		// no stdin? no worky.
 		if !hasStdin() {
@@ -51,6 +55,7 @@ Example:
 					domainResult, err := azrecon.CheckAzureCnames(
 						scanner.Text(),
 						cfg.Resolvers[rand.Intn(len(cfg.Resolvers))],
+						checkTakeover,
 					)
 					if err != nil {
 						continue
@@ -67,10 +72,17 @@ Example:
 			for result := range gather {
 				for _, cname := range result.Cnames {
 					if unique(cname.Cname) {
+						var takeoverString string
+						if checkTakeover && verbose {
+							takeoverString = fmt.Sprintf("[takeover: %v]", cname.Takeover)
+						} else if checkTakeover && cname.Takeover {
+							takeoverString = " (Potential subdomain takeover)"
+						}
+
 						if verbose {
-							fmt.Printf("%s [src: %s] [type: %s]\n", cname.Cname, result.Domain, cname.Type)
+							fmt.Printf("%s [src: %s] [type: %s] %s\n", cname.Cname, result.Domain, cname.Type, takeoverString)
 						} else {
-							fmt.Println(cname.Cname)
+							fmt.Printf("%s%s\n", cname.Cname, takeoverString)
 						}
 					}
 				}
@@ -91,6 +103,7 @@ Example:
 func init() {
 	rootCmd.AddCommand(mineCmd)
 
+	mineCmd.Flags().BoolP("check-takeover", "c", false, "Check for subdomain takeover.")
 	mineCmd.Flags().IntP("threads", "t", 50, "Number of threads for querying CNAME records.")
 	mineCmd.Flags().BoolP("verbose", "v", false, "Include information in output.")
 }
